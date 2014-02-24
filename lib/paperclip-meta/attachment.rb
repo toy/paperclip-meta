@@ -20,7 +20,7 @@ module Paperclip
           post_process_styles_without_meta_data(*style_args)
           return unless instance.respond_to?(:"#{name}_meta=")
 
-          meta = {}
+          meta = instance_read(:meta) && meta_decode(instance_read(:meta)) || {}
           @queued_for_write.each do |style, file|
             begin
               geo = Geometry.from_file file

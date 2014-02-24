@@ -15,6 +15,17 @@ describe "Attachment" do
     assert_equal '100x100', img.big_image.dimensions(:thumb)
   end
 
+  it "does not loose meta for other styles when reprocessing one style" do
+    img = Image.create(small_image: small_image, big_image: big_image)
+    assert_equal '600x277', img.big_image.dimensions
+    assert_equal '100x100', img.big_image.dimensions(:thumb)
+    assert_equal '200x200', img.big_image.dimensions(:medium)
+    img.big_image.reprocess!(:medium)
+    assert_equal '600x277', img.big_image.dimensions
+    assert_equal '100x100', img.big_image.dimensions(:thumb)
+    assert_equal '200x200', img.big_image.dimensions(:medium)
+  end
+
   it "sets geometry on update" do
     img = Image.create!
     img.small_image = small_image
