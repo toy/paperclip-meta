@@ -1,4 +1,4 @@
-# Paperclip Meta 
+# Paperclip Meta
 
 [![Gem Version](https://badge.fury.io/rb/paperclip-meta.png)](http://badge.fury.io/rb/paperclip-meta)
 [![Build Status](https://travis-ci.org/teeparham/paperclip-meta.png)](https://travis-ci.org/teeparham/paperclip-meta)
@@ -32,9 +32,9 @@ Rebuild all thumbnails to populate the meta column if you already have some atta
 Now you can grab the size from the paperclip attachment:
 
 ```
-<%= image_tag user.avatar.url, size: user.avatar.image_size %>
-<%= image_tag user.avatar.url(:medium), size: user.avatar.image_size(:medium) %>
-<%= image_tag user.avatar.url(:thumb), size: user.avatar.image_size(:thumb) %>
+<%= image_tag user.avatar.url, size: user.avatar.dimensions %>
+<%= image_tag user.avatar.url(:medium), size: user.avatar.dimensions(:medium) %>
+<%= image_tag user.avatar.url(:thumb), size: user.avatar.dimensions(:thumb) %>
 ```
 
 ### Internals

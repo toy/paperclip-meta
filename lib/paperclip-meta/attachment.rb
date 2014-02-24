@@ -11,7 +11,7 @@ module Paperclip
       module InstanceMethods
         def save_with_meta_data
           if @queued_for_delete.any? && @queued_for_write.empty?
-            instance_write(:meta, meta_encode({}))
+            write_meta({})
           end
           save_without_meta_data
         end
@@ -20,7 +20,7 @@ module Paperclip
           post_process_styles_without_meta_data(*style_args)
           return unless instance.respond_to?(:"#{name}_meta=")
 
-          meta = {}
+          meta = read_meta || {}
           @queued_for_write.each do |style, file|
             begin
               geo = Geometry.from_file file
@@ -29,50 +29,47 @@ module Paperclip
               meta[style] = {}
             end
           end
-
-          return if meta == {}
-
-          instance.send("#{name}_meta=", meta_encode(meta))
+          write_meta(meta)
         end
 
         # Use meta info for style if required
         def size_with_meta_data(style = nil)
-          style ? meta_read(style, :size) : size_without_meta_data
+          style ? meta_for_style(style)[:size] : size_without_meta_data
         end
 
         def height(style = default_style)
-          meta_read style, :height
+          meta_for_style(style)[:height]
         end
 
         def width(style = default_style)
-          meta_read style, :width
+          meta_for_style(style)[:width]
         end
 
         # Return image dimesions ("WxH") for given style name. If style name not given,
         # return dimesions for default_style.
-        def image_size(style = default_style)
-          "#{width(style)}x#{height(style)}"
+        def dimensions(style = default_style)
+          meta = meta_for_style(style)
+          w = meta[:width]
+          h = meta[:height]
+          "#{w}#{h && "x#{h}"}" if w || h
+        end
+        alias_method :image_size, :dimensions
+
+      private
+
+        def meta_for_style(style)
+          read_meta.try(:[], style) || {}
         end
 
-        private
-
-        # Return meta data for given style
-        def meta_read(style, item)
-          if instance.respond_to?(:"#{name}_meta") && instance_read(:meta)
-            if (meta = meta_decode(instance_read(:meta)))
-              meta.key?(style) ? meta[style][item] : nil
-            end
-          end
+        def read_meta
+          encoded = instance_read(:meta)
+          encoded && MultiJson.load(encoded, :symbolize_keys => true)
+        rescue MultiJson::LoadError
+          nil
         end
 
-        # Return encoded metadata as String
-        def meta_encode(meta)
-          Base64.encode64(Marshal.dump(meta))
-        end
-
-        # Return decoded metadata as Object
-        def meta_decode(meta)
-          Marshal.load(Base64.decode64(meta))
+        def write_meta(meta)
+          instance_write(:meta, MultiJson.dump(meta))
         end
       end
     end

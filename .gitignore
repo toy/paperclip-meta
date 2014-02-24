@@ -3,3 +3,4 @@ Gemfile.lock
 pkg/*
 spec/gemfiles/*.lock
 spec/tmp/*/**
+.ruby-version
