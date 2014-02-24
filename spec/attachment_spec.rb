@@ -7,21 +7,19 @@ describe "Attachment" do
     geometry = geometry_for(small_path)
     assert_equal geometry.width, img.small_image.width
     assert_equal geometry.height, img.small_image.height
+    assert_equal geometry.to_s, img.small_image.dimensions
   end
 
   it "saves geometry for styles" do
     img = Image.create(small_image: small_image, big_image: big_image)
-    assert_equal 100, img.big_image.width(:thumb)
-    assert_equal 100, img.big_image.height(:thumb)
+    assert_equal '100x100', img.big_image.dimensions(:thumb)
   end
 
   it "sets geometry on update" do
     img = Image.create!
     img.small_image = small_image
     img.save
-    geometry = geometry_for(small_path)
-    assert_equal geometry.width, img.small_image.width
-    assert_equal geometry.height, img.small_image.height
+    assert_equal geometry_for(small_path).to_s, img.small_image.dimensions
   end
 
   describe 'file size' do
