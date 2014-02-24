@@ -50,9 +50,10 @@ module Paperclip
 
         # Return image dimesions ("WxH") for given style name. If style name not given,
         # return dimesions for default_style.
-        def image_size(style = default_style)
+        def dimensions(style = default_style)
           "#{width(style)}x#{height(style)}"
         end
+        alias_method :image_size, :dimensions
 
         private
 
