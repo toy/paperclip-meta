@@ -11,7 +11,7 @@ module Paperclip
       module InstanceMethods
         def save_with_meta_data
           if @queued_for_delete.any? && @queued_for_write.empty?
-            instance_write(:meta, meta_encode({}))
+            write_meta({})
           end
           save_without_meta_data
         end
@@ -20,7 +20,7 @@ module Paperclip
           post_process_styles_without_meta_data(*style_args)
           return unless instance.respond_to?(:"#{name}_meta=")
 
-          meta = instance_read(:meta) && meta_decode(instance_read(:meta)) || {}
+          meta = read_meta || {}
           @queued_for_write.each do |style, file|
             begin
               geo = Geometry.from_file file
@@ -29,10 +29,7 @@ module Paperclip
               meta[style] = {}
             end
           end
-
-          return if meta == {}
-
-          instance.send("#{name}_meta=", meta_encode(meta))
+          write_meta(meta)
         end
 
         # Use meta info for style if required
@@ -57,25 +54,22 @@ module Paperclip
         end
         alias_method :image_size, :dimensions
 
-        private
+      private
 
         # Return meta data for given style
         def meta_read(style, item)
-          if instance.respond_to?(:"#{name}_meta") && instance_read(:meta)
-            if (meta = meta_decode(instance_read(:meta)))
-              meta.key?(style) ? meta[style][item] : nil
-            end
+          if meta = read_meta
+            meta.key?(style) ? meta[style][item] : nil
           end
         end
 
-        # Return encoded metadata as String
-        def meta_encode(meta)
-          Base64.encode64(Marshal.dump(meta))
+        def read_meta
+          encoded = instance_read(:meta)
+          encoded && Marshal.load(Base64.decode64(encoded))
         end
 
-        # Return decoded metadata as Object
-        def meta_decode(meta)
-          Marshal.load(Base64.decode64(meta))
+        def write_meta(meta)
+          instance_write(:meta, Base64.encode64(Marshal.dump(meta)))
         end
       end
     end
