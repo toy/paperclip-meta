@@ -49,6 +49,7 @@ describe "Attachment" do
     img.big_image = nil
     img.save!
     assert_nil img.big_image.width(:thumb)
+    assert_nil img.big_image.dimensions(:thumb)
   end
 
   it "does not save when file is not an image" do
@@ -56,6 +57,7 @@ describe "Attachment" do
     img.small_image = not_image
     refute img.save
     assert_nil img.small_image.width
+    assert_nil img.small_image.dimensions
   end
 
   it "returns nil attributes when file is not an image" do
@@ -64,6 +66,7 @@ describe "Attachment" do
     img.save!
     assert_nil img.small_image.width
     assert_nil img.small_image.height
+    assert_nil img.small_image.dimensions
   end
 
   private
