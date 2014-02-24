@@ -63,11 +63,13 @@ module Paperclip
 
         def read_meta
           encoded = instance_read(:meta)
-          encoded && Marshal.load(Base64.decode64(encoded))
+          encoded && MultiJson.load(encoded, :symbolize_keys => true)
+        rescue MultiJson::LoadError
+          nil
         end
 
         def write_meta(meta)
-          instance_write(:meta, Base64.encode64(Marshal.dump(meta)))
+          instance_write(:meta, MultiJson.dump(meta))
         end
       end
     end
