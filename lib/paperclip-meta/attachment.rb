@@ -34,33 +34,31 @@ module Paperclip
 
         # Use meta info for style if required
         def size_with_meta_data(style = nil)
-          style ? meta_read(style, :size) : size_without_meta_data
+          style ? meta_for_style(style)[:size] : size_without_meta_data
         end
 
         def height(style = default_style)
-          meta_read style, :height
+          meta_for_style(style)[:height]
         end
 
         def width(style = default_style)
-          meta_read style, :width
+          meta_for_style(style)[:width]
         end
 
         # Return image dimesions ("WxH") for given style name. If style name not given,
         # return dimesions for default_style.
         def dimensions(style = default_style)
-          w = width(style)
-          h = height(style)
+          meta = meta_for_style(style)
+          w = meta[:width]
+          h = meta[:height]
           "#{w}#{h && "x#{h}"}" if w || h
         end
         alias_method :image_size, :dimensions
 
       private
 
-        # Return meta data for given style
-        def meta_read(style, item)
-          if meta = read_meta
-            meta.key?(style) ? meta[style][item] : nil
-          end
+        def meta_for_style(style)
+          read_meta.try(:[], style) || {}
         end
 
         def read_meta
