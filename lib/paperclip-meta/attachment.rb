@@ -27,6 +27,24 @@ module Paperclip
           write_meta(meta)
         end
 
+        def refresh_meta!
+          meta = {}
+
+          if options[:storage] == :filesystem
+            meta[:original] = meta_from_file(Pathname(path))
+            styles.each do |name, options|
+              meta[name] = meta_from_file(Pathname(path(name)))
+            end
+          else
+            meta[:original] = meta_from_file(Paperclip.io_adapters.for(self))
+            styles.each do |name, options|
+              meta[name] = meta_from_file(Paperclip.io_adapters.for(options))
+            end
+          end
+
+          write_meta(meta)
+        end
+
         # Use meta info for style if required
         def size_with_meta_data(style = nil)
           style ? meta_for_style(style)[:size] : size_without_meta_data

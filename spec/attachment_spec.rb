@@ -26,6 +26,18 @@ describe "Attachment" do
     assert_equal '200x200', img.big_image.dimensions(:medium)
   end
 
+  it "refreshes meta" do
+    img = Image.create(small_image: small_image, big_image: big_image)
+    img.big_image_meta = nil
+    assert_equal nil, img.big_image.dimensions
+    assert_equal nil, img.big_image.dimensions(:thumb)
+    assert_equal nil, img.big_image.dimensions(:medium)
+    img.big_image.refresh_meta!
+    assert_equal '600x277', img.big_image.dimensions
+    assert_equal '100x100', img.big_image.dimensions(:thumb)
+    assert_equal '200x200', img.big_image.dimensions(:medium)
+  end
+
   it "sets geometry on update" do
     img = Image.create!
     img.small_image = small_image
