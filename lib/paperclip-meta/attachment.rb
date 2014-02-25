@@ -22,12 +22,7 @@ module Paperclip
 
           meta = read_meta || {}
           @queued_for_write.each do |style, file|
-            begin
-              geo = Geometry.from_file file
-              meta[style] = { width: geo.width.to_i, height: geo.height.to_i, size: file.size }
-            rescue Paperclip::Errors::NotIdentifiedByImageMagickError
-              meta[style] = {}
-            end
+            meta[style] = meta_from_file(file)
           end
           write_meta(meta)
         end
@@ -48,28 +43,46 @@ module Paperclip
         # Return image dimesions ("WxH") for given style name. If style name not given,
         # return dimesions for default_style.
         def dimensions(style = default_style)
-          meta = meta_for_style(style)
-          w = meta[:width]
-          h = meta[:height]
+          m = meta_for_style(style)
+          w = m[:width]
+          h = m[:height]
           "#{w}#{h && "x#{h}"}" if w || h
         end
         alias_method :image_size, :dimensions
 
       private
 
+        def meta_from_file(file)
+          m = {size: file.size}
+          begin
+            geo = Geometry.from_file file
+            m[:width] = geo.width.to_i
+            m[:height] = geo.height.to_i
+          rescue Paperclip::Errors::NotIdentifiedByImageMagickError
+          end
+          m
+        end
+
         def meta_for_style(style)
           read_meta.try(:[], style) || {}
         end
 
         def read_meta
-          encoded = instance_read(:meta)
-          encoded && MultiJson.load(encoded, :symbolize_keys => true)
-        rescue MultiJson::LoadError
-          nil
+          if encoded = instance_read(:meta)
+            meta = {}
+            encoded.split(',').each do |s|
+              if s =~ %r{\A(.*):(\d+)?/(\d+)?x(\d+)?\z}
+                meta[$1.to_sym] = {size: $2.to_i, width: $3 && $3.to_i, height: $4 && $4.to_i}
+              end
+            end
+            meta
+          end
         end
 
         def write_meta(meta)
-          instance_write(:meta, MultiJson.dump(meta))
+          instance_write(:meta, meta.map do |style, m|
+            "#{style}:#{m[:size]}/#{m[:width]}x#{m[:height]}"
+          end.join(','))
         end
       end
     end
