@@ -9,6 +9,8 @@ module Paperclip
             Paperclip::Meta::Railtie.insert
           end
         end
+
+        rake_tasks { load 'tasks/paperclip-meta.rake' }
       end
     end
 
